@@ -79,16 +79,38 @@
                 </div>
               </div>
               
-              <h2 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1.5rem; border-top: 1px solid var(--border); padding-top: 2rem;">Delivery Method</h2>
-              <div style="border: 1px solid var(--primary); border-radius: var(--radius); padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; background: var(--accent);">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                  <input type="radio" id="delivery-standard" name="delivery" checked style="width: 1.25rem; height: 1.25rem; accent-color: var(--primary);">
-                  <div>
-                    <label for="delivery-standard" style="font-weight: 600; display: block; cursor: pointer;">Standard Delivery</label>
-                    <span style="color: var(--muted-foreground); font-size: 0.875rem;">3-5 business days</span>
+              <h2 id="delivery-method-heading" style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1.5rem; border-top: 1px solid var(--border); padding-top: 2rem;">Delivery Method</h2>
+              <div id="delivery-method-container">
+                <div class="form-group">
+                  <label class="form-label" for="delivery-method">Select Delivery Method</label>
+                  <select id="delivery-method" class="form-control" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="paxi">PAXI (PEP Store Pickup)</option>
+                    <option value="courier">Courier Delivery</option>
+                  </select>
+                </div>
+
+                <div id="paxi-section" style="display: none; margin-top: 1rem; border: 1px solid var(--primary); border-radius: var(--radius); padding: 1.25rem; background: var(--accent);">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="pep-store-code">Enter PEP Store Code</label>
+                    <input type="text" id="pep-store-code" class="form-control" placeholder="e.g. P1234">
+                    <small style="color: var(--muted-foreground); margin-top: 0.5rem; display: block;">You can get your PEP store code from the nearest PEP store</small>
                   </div>
                 </div>
-                <span style="font-weight: 600;" id="delivery-price">R60.00</span>
+
+                <div id="courier-section" style="display: none; margin-top: 1rem; border: 1px solid var(--primary); border-radius: var(--radius); padding: 1.25rem; background: var(--accent);">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="province">Select Your Province</label>
+                    <select id="province" class="form-control">
+                      <option value="" disabled selected>Select an option</option>
+                      <option value="100">Limpopo (R100)</option>
+                      <option value="120">Gauteng (R120)</option>
+                      <option value="110">Mpumalanga (R110)</option>
+                      <option value="130">KwaZulu-Natal (R130)</option>
+                      <option value="150">Western Cape (R150)</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem; justify-content: center; font-size: 1rem; padding: 1rem;">

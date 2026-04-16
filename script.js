@@ -1,4 +1,4 @@
-﻿class AppState {
+class AppState {
   constructor() {
     this.cart = JSON.parse(localStorage.getItem('kgodiso_cart') || '[]');
     this.user = JSON.parse(localStorage.getItem('kgodiso_user') || 'null');
@@ -6,7 +6,10 @@
   }
 
   getDeliveryFee() {
-    return this.cart.length > 0 ? 60 : 0;
+    if (this.cart.length === 0) return 0;
+    // Book id '3' is the eBook, which doesn't require delivery
+    const hasPhysicalBook = this.cart.some(item => String(item.id) !== '3');
+    return hasPhysicalBook ? 60 : 0;
   }
 
   saveCart() {
@@ -288,22 +291,84 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>R${(item.price * item.quantity).toFixed(2)}</span>
       </div>
     `).join('');
+    const hasPhysicalBook = cart.some(item => String(item.id) !== '3');
+    let currentDeliveryFee = hasPhysicalBook ? 60 : 0;
     const subtotal = window.appState.getCartTotal();
-    const delivery = window.appState.getDeliveryFee();
-    subtotalEl.textContent = `R${subtotal.toFixed(2)}`;
-    deliveryEl.textContent = `R${delivery.toFixed(2)}`;
-    deliveryPriceEl.textContent = `R${delivery.toFixed(2)}`;
-    totalEl.textContent = `R${(subtotal + delivery).toFixed(2)}`;
+
+    const methHeading = document.getElementById('delivery-method-heading');
+    const methContainer = document.getElementById('delivery-method-container');
+    const methodSelect = document.getElementById('delivery-method');
+    const paxiSection = document.getElementById('paxi-section');
+    const courierSection = document.getElementById('courier-section');
+    const provinceSelect = document.getElementById('province');
+    const pepInput = document.getElementById('pep-store-code');
+
+    const updateUI = (fee) => {
+      currentDeliveryFee = fee;
+      subtotalEl.textContent = `R${subtotal.toFixed(2)}`;
+      deliveryEl.textContent = `R${fee.toFixed(2)}`;
+      if (deliveryPriceEl) deliveryPriceEl.textContent = `R${fee.toFixed(2)}`;
+      totalEl.textContent = `R${(subtotal + fee).toFixed(2)}`;
+    };
+
+    if (!hasPhysicalBook) {
+      if (methHeading) methHeading.style.display = 'none';
+      if (methContainer) methContainer.style.display = 'none';
+      updateUI(0);
+    } else {
+      updateUI(0); // Require selection, so initially it's 0 or we can keep it 60 if we default PAXI, but no option is selected initially.
+      if (methodSelect) {
+        methodSelect.addEventListener('change', () => {
+          if (methodSelect.value === 'paxi') {
+            paxiSection.style.display = 'block';
+            courierSection.style.display = 'none';
+            pepInput.required = true;
+            provinceSelect.required = false;
+            updateUI(60);
+          } else if (methodSelect.value === 'courier') {
+            paxiSection.style.display = 'none';
+            courierSection.style.display = 'block';
+            pepInput.required = false;
+            provinceSelect.required = true;
+            const provFee = parseFloat(provinceSelect.value) || 0;
+            updateUI(provFee);
+          }
+        });
+      }
+      if (provinceSelect) {
+        provinceSelect.addEventListener('change', () => {
+          if (methodSelect.value === 'courier') {
+            updateUI(parseFloat(provinceSelect.value) || 0);
+          }
+        });
+      }
+    }
+
     document.getElementById('checkout-form').addEventListener('submit', (e) => {
       e.preventDefault();
+      // Ensure if they need delivery, they selected something
+      if (hasPhysicalBook && methodSelect && methodSelect.value === 'courier' && !provinceSelect.value) {
+        alert("Please select a province.");
+        return;
+      }
+      
       const formData = {
         fullName: document.getElementById('fullName').value,
         phone: document.getElementById('phone').value,
         email: document.getElementById('email').value,
         address: document.getElementById('address').value,
         city: document.getElementById('city').value,
-        zip: document.getElementById('zip').value
+        zip: document.getElementById('zip').value,
+        deliveryMethod: hasPhysicalBook && methodSelect ? methodSelect.value : 'none',
+        deliveryFee: currentDeliveryFee
       };
+      
+      if (formData.deliveryMethod === 'paxi') {
+        formData.pepCode = pepInput.value;
+      } else if (formData.deliveryMethod === 'courier') {
+        formData.province = provinceSelect.options[provinceSelect.selectedIndex].text;
+      }
+
       localStorage.setItem('checkoutData', JSON.stringify(formData));
       window.location.href = 'payment.html';
     });
@@ -331,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (checkoutData.phone) document.getElementById('payerPhone').value = checkoutData.phone;
     if (checkoutData.email) document.getElementById('payerEmail').value = checkoutData.email;
     const subtotal = window.appState.getCartTotal();
-    const delivery = window.appState.getDeliveryFee();
+    const delivery = checkoutData.deliveryFee !== undefined ? checkoutData.deliveryFee : window.appState.getDeliveryFee();
     const total = subtotal + delivery;
     subtotalEl.textContent = `R${subtotal.toFixed(2)}`;
     deliveryEl.textContent = `R${delivery.toFixed(2)}`;
