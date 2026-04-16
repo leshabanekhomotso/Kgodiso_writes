@@ -266,10 +266,9 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `).join('');
         const subtotal = window.appState.getCartTotal();
-        const delivery = window.appState.getDeliveryFee();
         subtotalEl.textContent = `R${subtotal.toFixed(2)}`;
-        deliveryEl.textContent = `R${delivery.toFixed(2)}`;
-        totalEl.textContent = `R${(subtotal + delivery).toFixed(2)}`;
+        if (deliveryEl) deliveryEl.textContent = `R0.00`; // Just in case it exists in a cached version
+        totalEl.textContent = `R${subtotal.toFixed(2)}`;
       }
     };
     renderCartPage();
